@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.proofloop/
+.worktrees/
+.workbench/*
+!.workbench/.gitignore
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+*.tsbuildinfo
+premium-audit.json

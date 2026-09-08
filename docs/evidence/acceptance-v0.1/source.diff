@@ -1,0 +1,14 @@
+--- failed/snapshots/before/project/src/filter.mjs
++++ passed/snapshots/before/project/src/filter.mjs
+@@ -1,5 +1,6 @@
+-// Deliberately broken demo starting point: matching is case-sensitive.
+-// Codex repairs this source after the first real ProofLoop verification fails.
+-export function filterItems(items, query) {
+-  return items.filter((item) => item.includes(query));
+-}
++// Repaired by Codex after the first real ProofLoop failure, without changing checks.
++// Scope: string arrays and JavaScript's Unicode lowercase substring semantics.
++export function filterItems(items, query) {
++  const normalizedQuery = query.toLowerCase();
++  return items.filter((item) => item.toLowerCase().includes(normalizedQuery));
++}

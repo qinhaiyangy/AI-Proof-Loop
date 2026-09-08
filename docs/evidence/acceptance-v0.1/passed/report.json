@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "taskId": "keyword-filter",
+  "runId": "56c625c6-fc05-49bf-8e0d-d085b705caa2",
+  "attemptId": "f74410d8-5353-4924-883a-6883b744371d",
+  "recordDir": "<RUN_RECORD>",
+  "projectDir": "<EXAMPLE_PROJECT>",
+  "startedAt": "2026-09-08T02:43:13.030Z",
+  "finishedAt": "2026-09-08T02:43:13.209Z",
+  "previousRecordId": "10acb530-80e7-4aa4-ac8e-2cbe6a6e72e1",
+  "contractId": "87a8bfd6cff9d2c2d8b626b4c074503b4bc11afcc1c477a359a5069e2b51373a",
+  "contractVersion": 1,
+  "standardId": "817d8b596496934f3b4abc5190542e212ac214a613625d8d61c4a4ca32525dc9",
+  "codeId": "766203a1b0f62697fab1a4d965fd942d8e7ac4ee5fe9a1bf4116081376cf53ac",
+  "contract": {
+    "schemaVersion": 1,
+    "taskId": "keyword-filter",
+    "version": 1,
+    "goal": "实现字符串数组关键词筛选：大小写不敏感，空查询返回全部，无匹配返回空数组。",
+    "projectDir": ".",
+    "sourceFiles": [
+      "src/filter.mjs"
+    ],
+    "allowedChanges": [
+      "src/filter.mjs"
+    ],
+    "requirements": [
+      {
+        "id": "R1",
+        "description": "关键词匹配不区分大小写；ALP 匹配 Alpha 与 alphabet。",
+        "required": true,
+        "checkIds": [
+          "case-insensitive"
+        ]
+      },
+      {
+        "id": "R2",
+        "description": "空查询返回全部输入项，保持顺序。",
+        "required": true,
+        "checkIds": [
+          "empty-query"
+        ]
+      },
+      {
+        "id": "R3",
+        "description": "没有匹配项时返回空数组。",
+        "required": true,
+        "checkIds": [
+          "no-match"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "id": "case-insensitive",
+        "executable": "node",
+        "args": [
+          "checks/filter.check.mjs",
+          "case-insensitive"
+        ],
+        "cwd": ".",
+        "timeoutMs": 3000,
+        "passExitCodes": [
+          0
+        ],
+        "files": [
+          "checks/filter.check.mjs"
+        ]
+      },
+      {
+        "id": "empty-query",
+        "executable": "node",
+        "args": [
+          "checks/filter.check.mjs",
+          "empty-query"
+        ],
+        "cwd": ".",
+        "timeoutMs": 3000,
+        "passExitCodes": [
+          0
+        ],
+        "files": [
+          "checks/filter.check.mjs"
+        ]
+      },
+      {
+        "id": "no-match",
+        "executable": "node",
+        "args": [
+          "checks/filter.check.mjs",
+          "no-match"
+        ],
+        "cwd": ".",
+        "timeoutMs": 3000,
+        "passExitCodes": [
+          0
+        ],
+        "files": [
+          "checks/filter.check.mjs"
+        ]
+      }
+    ]
+  },
+  "before": {
+    "id": "4b7f9d553b23d19b3ee8be320d154e7ee1bba83b2664404c9c2b10702c141745",
+    "codeId": "766203a1b0f62697fab1a4d965fd942d8e7ac4ee5fe9a1bf4116081376cf53ac",
+    "entries": [
+      {
+        "path": "contract.json",
+        "role": "contract",
+        "sha256": "87a8bfd6cff9d2c2d8b626b4c074503b4bc11afcc1c477a359a5069e2b51373a",
+        "size": 1556,
+        "mtimeNs": "1788833882985774200",
+        "ctimeNs": "1788833882985774200"
+      },
+      {
+        "path": "project/checks/filter.check.mjs",
+        "role": "check",
+        "sha256": "448a9917a139cc9dd0a3ec89c2677e67faa117fb239c9a25791799697806c836",
+        "size": 780,
+        "mtimeNs": "1788833882985774200",
+        "ctimeNs": "1788833882985774200"
+      },
+      {
+        "path": "project/src/filter.mjs",
+        "role": "source",
+        "sha256": "8017641bc6618671ee97120c91c940c3e69b522f58abeb261e2867acf6a91e00",
+        "size": 338,
+        "mtimeNs": "1788835386395205900",
+        "ctimeNs": "1788835386395205900"
+      }
+    ]
+  },
+  "after": {
+    "id": "4b7f9d553b23d19b3ee8be320d154e7ee1bba83b2664404c9c2b10702c141745",
+    "codeId": "766203a1b0f62697fab1a4d965fd942d8e7ac4ee5fe9a1bf4116081376cf53ac",
+    "entries": [
+      {
+        "path": "contract.json",
+        "role": "contract",
+        "sha256": "87a8bfd6cff9d2c2d8b626b4c074503b4bc11afcc1c477a359a5069e2b51373a",
+        "size": 1556,
+        "mtimeNs": "1788833882985774200",
+        "ctimeNs": "1788833882985774200"
+      },
+      {
+        "path": "project/checks/filter.check.mjs",
+        "role": "check",
+        "sha256": "448a9917a139cc9dd0a3ec89c2677e67faa117fb239c9a25791799697806c836",
+        "size": 780,
+        "mtimeNs": "1788833882985774200",
+        "ctimeNs": "1788833882985774200"
+      },
+      {
+        "path": "project/src/filter.mjs",
+        "role": "source",
+        "sha256": "8017641bc6618671ee97120c91c940c3e69b522f58abeb261e2867acf6a91e00",
+        "size": 338,
+        "mtimeNs": "1788835386395205900",
+        "ctimeNs": "1788835386395205900"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "case-insensitive",
+      "executable": "<NODE_EXECUTABLE>",
+      "args": [
+        "checks/filter.check.mjs",
+        "case-insensitive"
+      ],
+      "cwd": "<EXAMPLE_PROJECT>",
+      "timeoutMs": 3000,
+      "startedAt": "2026-09-08T02:43:13.042Z",
+      "finishedAt": "2026-09-08T02:43:13.099Z",
+      "pid": 25036,
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "Acceptance check passed: case-insensitive\n",
+      "stderr": "",
+      "status": "PASSED",
+      "reason": "Process exited with code 0; accepted exit codes: 0.",
+      "cleanup": {
+        "attempted": false,
+        "confirmed": false,
+        "detail": "No process-tree cleanup was requested."
+      },
+      "logs": {
+        "stdout": {
+          "path": "checks/case-insensitive.stdout.log",
+          "sha256": "1c9ef32d49cc20f7a40f4192d688f5c3e796667786f9ed0f25f5a81370c27bf9",
+          "originalSha256": "1c9ef32d49cc20f7a40f4192d688f5c3e796667786f9ed0f25f5a81370c27bf9",
+          "exportedSha256": "1c9ef32d49cc20f7a40f4192d688f5c3e796667786f9ed0f25f5a81370c27bf9"
+        },
+        "stderr": {
+          "path": "checks/case-insensitive.stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "exportedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "id": "empty-query",
+      "executable": "<NODE_EXECUTABLE>",
+      "args": [
+        "checks/filter.check.mjs",
+        "empty-query"
+      ],
+      "cwd": "<EXAMPLE_PROJECT>",
+      "timeoutMs": 3000,
+      "startedAt": "2026-09-08T02:43:13.100Z",
+      "finishedAt": "2026-09-08T02:43:13.152Z",
+      "pid": 23816,
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "Acceptance check passed: empty-query\n",
+      "stderr": "",
+      "status": "PASSED",
+      "reason": "Process exited with code 0; accepted exit codes: 0.",
+      "cleanup": {
+        "attempted": false,
+        "confirmed": false,
+        "detail": "No process-tree cleanup was requested."
+      },
+      "logs": {
+        "stdout": {
+          "path": "checks/empty-query.stdout.log",
+          "sha256": "523ec6b76590523f0609551ab6a429c1b8b40cf694ce7683fe401f490bff80a4",
+          "originalSha256": "523ec6b76590523f0609551ab6a429c1b8b40cf694ce7683fe401f490bff80a4",
+          "exportedSha256": "523ec6b76590523f0609551ab6a429c1b8b40cf694ce7683fe401f490bff80a4"
+        },
+        "stderr": {
+          "path": "checks/empty-query.stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "exportedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "id": "no-match",
+      "executable": "<NODE_EXECUTABLE>",
+      "args": [
+        "checks/filter.check.mjs",
+        "no-match"
+      ],
+      "cwd": "<EXAMPLE_PROJECT>",
+      "timeoutMs": 3000,
+      "startedAt": "2026-09-08T02:43:13.153Z",
+      "finishedAt": "2026-09-08T02:43:13.202Z",
+      "pid": 26900,
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "Acceptance check passed: no-match\n",
+      "stderr": "",
+      "status": "PASSED",
+      "reason": "Process exited with code 0; accepted exit codes: 0.",
+      "cleanup": {
+        "attempted": false,
+        "confirmed": false,
+        "detail": "No process-tree cleanup was requested."
+      },
+      "logs": {
+        "stdout": {
+          "path": "checks/no-match.stdout.log",
+          "sha256": "bfdee9f9ceca638eaca4b800cdbf2bfc03298249d33fb4ac45b95100df6bb02e",
+          "originalSha256": "bfdee9f9ceca638eaca4b800cdbf2bfc03298249d33fb4ac45b95100df6bb02e",
+          "exportedSha256": "bfdee9f9ceca638eaca4b800cdbf2bfc03298249d33fb4ac45b95100df6bb02e"
+        },
+        "stderr": {
+          "path": "checks/no-match.stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "exportedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "id": "R1",
+      "description": "关键词匹配不区分大小写；ALP 匹配 Alpha 与 alphabet。",
+      "required": true,
+      "checkIds": [
+        "case-insensitive"
+      ],
+      "status": "PASSED"
+    },
+    {
+      "id": "R2",
+      "description": "空查询返回全部输入项，保持顺序。",
+      "required": true,
+      "checkIds": [
+        "empty-query"
+      ],
+      "status": "PASSED"
+    },
+    {
+      "id": "R3",
+      "description": "没有匹配项时返回空数组。",
+      "required": true,
+      "checkIds": [
+        "no-match"
+      ],
+      "status": "PASSED"
+    }
+  ],
+  "status": "PASSED",
+  "attemptVerdict": "PASSED",
+  "runOutcome": "PASSED",
+  "stable": true,
+  "unverified": [],
+  "runtime": {
+    "version": "0.1.0",
+    "node": "v24.19.0",
+    "platform": "win32",
+    "arch": "x64",
+    "executable": "<NODE_EXECUTABLE>",
+    "toolId": "c0444970d3b6c207b73aa5cda9783dce3c91c27d584085ac13d3318f14a6b8df",
+    "files": [
+      {
+        "path": "cli.mjs",
+        "sha256": "42190f7737b82e0ca9817dde7a036be3e906a6c2512b6bf69bec7d1d80f6f4b2"
+      },
+      {
+        "path": "contract.mjs",
+        "sha256": "17226924064fc263e6da652a9e41af95329ba70bd6d25ecd01650e507c3d3966"
+      },
+      {
+        "path": "integrity.mjs",
+        "sha256": "bd34d07b4eaa76b85e96011dc974d4eb9cec4a5412c71aca98463433197725f6"
+      },
+      {
+        "path": "process-runner.mjs",
+        "sha256": "56d3b2bc7b68fe35ec557daba442fbd3bbfe086d5e94153391a263e91de52d6d"
+      },
+      {
+        "path": "report.mjs",
+        "sha256": "f4a2a2281b23b3fd63ed9a1f6efbe3619c50f34df672ad5f4b3e3bd7ea669d98"
+      },
+      {
+        "path": "runtime.mjs",
+        "sha256": "1374a5a853b719b695345ac3e88f760bce225fcf2135adf876cd4ccbf3ce3756"
+      },
+      {
+        "path": "snapshot.mjs",
+        "sha256": "1ea45c1e51401496ca0523843cf9070cbfcd6bda805786ea58c074902d0c4025"
+      },
+      {
+        "path": "verify.mjs",
+        "sha256": "ca45d8134e2c305ab201b3f302db07787ac199af5ea8b044432584d552f50a0a"
+      }
+    ]
+  },
+  "export": {
+    "kind": "path-redacted-derived-copy",
+    "originalReportSha256": "d9f19a0f690e545c541119956dd29aeb8d31717cf69cb0dc4df67b6995296f43",
+    "note": "Public copies are derived evidence. Local absolute paths were replaced. Original local records were not modified. Log sha256 refers to the exported bytes; originalSha256 identifies the local bytes."
+  }
+}
