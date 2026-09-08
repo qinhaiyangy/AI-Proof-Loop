@@ -1,0 +1,9 @@
+# Preserve the new CLI's source identities across Windows checkouts.
+/src/acceptance/** text eol=lf
+/runtime-tests/** text eol=lf
+/examples/keyword-filter/** text eol=lf
+/scripts/*-acceptance.mjs text eol=lf
+/README.md text eol=lf
+/docs/releases/acceptance-v0.1.md text eol=lf
+# Exported evidence is byte-identified; never normalize its snapshots or logs.
+/docs/evidence/acceptance-v0.1/** -text

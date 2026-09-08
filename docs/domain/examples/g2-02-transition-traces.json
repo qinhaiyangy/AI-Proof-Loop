@@ -1,0 +1,1090 @@
+{
+  "encoding": "proofloop-g2-02-abstract-transition-trace-v1",
+  "notice": "These operations, content hashes, approval shadows, Executor-dispatch and verifier-stop provenance values, Attempt-owned interruption origins and recovery dispositions, abstract recovery-safety and Policy effect-quiescence witnesses, terminal source phases, cancellation correlation tokens, and post-cancel safe-convergence marker are design-time semantic labels. They are not the G2-03/G2-04/G2-05 Command, Event, Evidence, API, hash, identifier, or storage schema. Gate 5 must replace the abstract safety witnesses with concrete proof that all relevant effect-capable work stopped or never started and, for Recovery, that the governed workspace was reconciled.",
+  "machines": {
+    "CONTRACT_VERSION": {
+      "states": ["DRAFT", "CLARIFYING", "AWAITING_APPROVAL", "FROZEN", "SUPERSEDED"],
+      "terminalStates": ["SUPERSEDED"],
+      "transitions": [
+        { "operation": "CREATE_CONTRACT_VERSION", "from": "NONE", "to": "DRAFT" },
+        { "operation": "OPEN_CLARIFICATION", "from": "DRAFT", "to": "CLARIFYING" },
+        { "operation": "RESOLVE_CLARIFICATION", "from": "CLARIFYING", "to": "DRAFT" },
+        { "operation": "REQUEST_APPROVAL", "from": "DRAFT", "to": "AWAITING_APPROVAL" },
+        { "operation": "RETURN_FOR_CHANGES", "from": "AWAITING_APPROVAL", "to": "DRAFT" },
+        { "operation": "APPROVE_AND_FREEZE", "from": "AWAITING_APPROVAL", "to": "FROZEN" },
+        { "operation": "APPROVE_FREEZE_AND_SUPERSEDE", "from": "AWAITING_APPROVAL", "to": "FROZEN", "bundle": "REPLACE_CONTRACT" },
+        { "operation": "APPROVE_FREEZE_AND_SUPERSEDE", "from": "FROZEN", "to": "SUPERSEDED", "bundle": "REPLACE_CONTRACT" }
+      ]
+    },
+    "RUN": {
+      "states": ["QUEUED", "PREFLIGHT", "ACTIVE", "VERIFYING", "AWAITING_REPAIR", "FINISHED", "INTERRUPTED", "CANCELLED"],
+      "terminalStates": ["FINISHED", "CANCELLED"],
+      "transitions": [
+        { "operation": "CREATE_RUN", "from": "NONE", "to": "QUEUED" },
+        { "operation": "START_PREFLIGHT", "from": "QUEUED", "to": "PREFLIGHT" },
+        { "operation": "START_INITIAL_ATTEMPT", "from": "PREFLIGHT", "to": "ACTIVE", "bundle": "START_INITIAL_ATTEMPT" },
+        { "operation": "INTERRUPT_PREFLIGHT", "from": "PREFLIGHT", "to": "INTERRUPTED" },
+        { "operation": "RETRY_PREFLIGHT", "from": "INTERRUPTED", "to": "PREFLIGHT" },
+        { "operation": "PREFLIGHT_POLICY_BLOCKED", "from": "PREFLIGHT", "to": "FINISHED" },
+        { "operation": "EXECUTOR_FINISHED", "from": "ACTIVE", "to": "VERIFYING", "bundle": "EXECUTOR_FINISHED" },
+        { "operation": "RECORD_PASSED_VERDICT", "from": "VERIFYING", "to": "FINISHED", "bundle": "ADJUDICATE_ATTEMPT" },
+        { "operation": "RECORD_FAILED_VERDICT", "from": "VERIFYING", "to": "AWAITING_REPAIR", "bundle": "ADJUDICATE_ATTEMPT" },
+        { "operation": "RECORD_FAILED_VERDICT", "from": "VERIFYING", "to": "FINISHED", "bundle": "ADJUDICATE_ATTEMPT" },
+        { "operation": "DECLINE_REPAIR", "from": "AWAITING_REPAIR", "to": "FINISHED" },
+        { "operation": "START_REPAIR_ATTEMPT", "from": "AWAITING_REPAIR", "to": "ACTIVE", "bundle": "START_REPAIR_ATTEMPT" },
+        { "operation": "INTERRUPT_ATTEMPT", "from": "ACTIVE", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "INTERRUPT_ATTEMPT", "from": "VERIFYING", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "INTERRUPT_ATTEMPT", "from": "ACTIVE", "to": "FINISHED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "INTERRUPT_ATTEMPT", "from": "VERIFYING", "to": "FINISHED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "START_RECOVERY_ATTEMPT", "from": "INTERRUPTED", "to": "ACTIVE", "bundle": "START_RECOVERY_ATTEMPT" },
+        { "operation": "END_INTERRUPTED_RUN", "from": "INTERRUPTED", "to": "FINISHED" },
+        { "operation": "IN_ATTEMPT_POLICY_BLOCKED", "from": "ACTIVE", "to": "FINISHED", "bundle": "POLICY_BLOCK_ATTEMPT" },
+        { "operation": "IN_ATTEMPT_POLICY_BLOCKED", "from": "VERIFYING", "to": "FINISHED", "bundle": "POLICY_BLOCK_ATTEMPT" },
+        { "operation": "CONFIRM_CANCEL", "from": "QUEUED", "to": "CANCELLED" },
+        { "operation": "CONFIRM_CANCEL", "from": "PREFLIGHT", "to": "CANCELLED" },
+        { "operation": "CONFIRM_CANCEL", "from": "ACTIVE", "to": "CANCELLED", "bundle": "CANCEL_ACTIVE_ATTEMPT" },
+        { "operation": "CONFIRM_CANCEL", "from": "VERIFYING", "to": "CANCELLED", "bundle": "CANCEL_ACTIVE_ATTEMPT" },
+        { "operation": "CONFIRM_CANCEL", "from": "INTERRUPTED", "to": "CANCELLED" },
+        { "operation": "STOP_RESULT_UNKNOWN", "from": "ACTIVE", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "STOP_RESULT_UNKNOWN", "from": "VERIFYING", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" }
+      ]
+    },
+    "ATTEMPT": {
+      "states": ["STARTED", "EXECUTING", "VERIFYING", "FINISHED", "INTERRUPTED", "CANCELLED"],
+      "terminalStates": ["FINISHED", "INTERRUPTED", "CANCELLED"],
+      "transitions": [
+        { "operation": "START_INITIAL_ATTEMPT", "from": "NONE", "to": "STARTED", "bundle": "START_INITIAL_ATTEMPT" },
+        { "operation": "START_REPAIR_ATTEMPT", "from": "NONE", "to": "STARTED", "bundle": "START_REPAIR_ATTEMPT" },
+        { "operation": "START_RECOVERY_ATTEMPT", "from": "NONE", "to": "STARTED", "bundle": "START_RECOVERY_ATTEMPT" },
+        { "operation": "START_EXECUTION", "from": "STARTED", "to": "EXECUTING" },
+        { "operation": "EXECUTOR_FINISHED", "from": "STARTED", "to": "VERIFYING", "bundle": "EXECUTOR_FINISHED" },
+        { "operation": "EXECUTOR_FINISHED", "from": "EXECUTING", "to": "VERIFYING", "bundle": "EXECUTOR_FINISHED" },
+        { "operation": "RECORD_PASSED_VERDICT", "from": "VERIFYING", "to": "FINISHED", "bundle": "ADJUDICATE_ATTEMPT" },
+        { "operation": "RECORD_FAILED_VERDICT", "from": "VERIFYING", "to": "FINISHED", "bundle": "ADJUDICATE_ATTEMPT" },
+        { "operation": "INTERRUPT_ATTEMPT", "from": "STARTED", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "INTERRUPT_ATTEMPT", "from": "EXECUTING", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "INTERRUPT_ATTEMPT", "from": "VERIFYING", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "IN_ATTEMPT_POLICY_BLOCKED", "from": "STARTED", "to": "FINISHED", "bundle": "POLICY_BLOCK_ATTEMPT" },
+        { "operation": "IN_ATTEMPT_POLICY_BLOCKED", "from": "EXECUTING", "to": "FINISHED", "bundle": "POLICY_BLOCK_ATTEMPT" },
+        { "operation": "IN_ATTEMPT_POLICY_BLOCKED", "from": "VERIFYING", "to": "FINISHED", "bundle": "POLICY_BLOCK_ATTEMPT" },
+        { "operation": "CONFIRM_CANCEL", "from": "STARTED", "to": "CANCELLED", "bundle": "CANCEL_ACTIVE_ATTEMPT" },
+        { "operation": "CONFIRM_CANCEL", "from": "EXECUTING", "to": "CANCELLED", "bundle": "CANCEL_ACTIVE_ATTEMPT" },
+        { "operation": "CONFIRM_CANCEL", "from": "VERIFYING", "to": "CANCELLED", "bundle": "CANCEL_ACTIVE_ATTEMPT" },
+        { "operation": "STOP_RESULT_UNKNOWN", "from": "STARTED", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "STOP_RESULT_UNKNOWN", "from": "EXECUTING", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" },
+        { "operation": "STOP_RESULT_UNKNOWN", "from": "VERIFYING", "to": "INTERRUPTED", "bundle": "INTERRUPT_ATTEMPT" }
+      ]
+    }
+  },
+  "statePreservingFacts": [
+    {
+      "operation": "EDIT_CONTRACT_CONTENT",
+      "object": "CONTRACT_VERSION",
+      "states": ["DRAFT", "CLARIFYING"],
+      "meaning": "Changes the unapproved candidate content identity and optional Contract-owned maxAttempts while preserving lifecycle state. Waiting, frozen, and superseded versions are not editable."
+    },
+    {
+      "operation": "REQUEST_CANCEL",
+      "object": "RUN",
+      "states": ["QUEUED", "PREFLIGHT", "ACTIVE", "VERIFYING", "INTERRUPTED"],
+      "meaning": "Records intent to stop but cannot claim that stopping has completed. INTERRUPTED is eligible only for zero-Attempt Preflight abandonment or the already-related unknown stop flow; it cannot replace an Attempt-level INCONCLUSIVE judgment."
+    },
+    {
+      "operation": "PREFLIGHT_CHECK_FAILED",
+      "object": "RUN",
+      "states": ["PREFLIGHT"],
+      "meaning": "Records a deterministic, correctable diagnostic without creating an Attempt, Verdict, or Outcome."
+    },
+    {
+      "operation": "CONFIRM_RECOVERY_SAFETY",
+      "object": "ATTEMPT",
+      "states": ["INTERRUPTED"],
+      "meaning": "Appends an immutable abstract proof identity after all prior effect-capable Executor or verifier work is proven stopped or never started and the governed workspace is reconciled. It preserves the interruption-time disposition and every lifecycle state; CANCEL_STOP_UNKNOWN is ineligible."
+    }
+  ],
+  "validScenarios": [
+    {
+      "name": "contract-replacement-preserves-an-existing-run",
+      "tasks": ["task-contract"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-contract", "contractId": "contract-v1", "order": 1, "contentHash": "hash-v1", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-v1" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-v1" },
+        { "op": "CREATE_RUN", "runId": "run-v1", "contractId": "contract-v1" },
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-contract", "contractId": "contract-v2", "order": 2, "contentHash": "hash-v2", "maxAttempts": 2 },
+        { "op": "EDIT_CONTRACT_CONTENT", "contractId": "contract-v2", "contentHash": "hash-v2-draft-edited", "maxAttempts": 2 },
+        { "op": "OPEN_CLARIFICATION", "contractId": "contract-v2" },
+        { "op": "EDIT_CONTRACT_CONTENT", "contractId": "contract-v2", "contentHash": "hash-v2-clarified", "maxAttempts": 2 },
+        { "op": "RESOLVE_CLARIFICATION", "contractId": "contract-v2" },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-v2" },
+        { "op": "APPROVE_FREEZE_AND_SUPERSEDE", "contractId": "contract-v2", "predecessorId": "contract-v1" }
+      ],
+      "expect": {
+        "contractStates": { "contract-v1": "SUPERSEDED", "contract-v2": "FROZEN" },
+        "runBindings": { "run-v1": "contract-v1" }
+      }
+    },
+    {
+      "name": "failed-initial-attempt-repair-passes",
+      "tasks": ["task-repair"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-repair", "contractId": "contract-repair", "order": 1, "contentHash": "hash-repair", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-repair" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-repair" },
+        { "op": "CREATE_RUN", "runId": "run-repair", "contractId": "contract-repair" },
+        { "op": "START_PREFLIGHT", "runId": "run-repair" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-repair", "attemptId": "attempt-1" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-1" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-1", "candidateId": "candidate-1" },
+        { "op": "RECORD_FAILED_VERDICT", "attemptId": "attempt-1", "verdictId": "verdict-1" },
+        { "op": "START_REPAIR_ATTEMPT", "runId": "run-repair", "attemptId": "attempt-2" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-2" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-2", "candidateId": "candidate-2" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-2", "verdictId": "verdict-2" }
+      ],
+      "expect": {
+        "runStates": { "run-repair": "FINISHED" },
+        "attemptStates": { "attempt-1": "FINISHED", "attempt-2": "FINISHED" },
+        "runOutcomes": { "run-repair": "PASSED" }
+      }
+    },
+    {
+      "name": "interrupted-attempt-recovers-with-a-new-repair",
+      "tasks": ["task-recovery"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-recovery", "contractId": "contract-recovery", "order": 1, "contentHash": "hash-recovery", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-recovery" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-recovery" },
+        { "op": "CREATE_RUN", "runId": "run-recovery", "contractId": "contract-recovery" },
+        { "op": "START_PREFLIGHT", "runId": "run-recovery" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-recovery", "attemptId": "attempt-interrupted" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-interrupted" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-interrupted", "verdictId": "verdict-inconclusive", "errorId": "error-disconnected" },
+        { "op": "CONFIRM_RECOVERY_SAFETY", "attemptId": "attempt-interrupted", "recoverySafety": "ALL_PRIOR_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED_AND_WORKSPACE_RECONCILED", "recoverySafetyProofId": "recovery-safety-after-disconnect" },
+        { "op": "START_RECOVERY_ATTEMPT", "runId": "run-recovery", "attemptId": "attempt-recovery", "trigger": "error" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-recovery" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-recovery", "candidateId": "candidate-recovery" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-recovery", "verdictId": "verdict-recovery" }
+      ],
+      "expect": {
+        "runStates": { "run-recovery": "FINISHED" },
+        "attemptStates": { "attempt-interrupted": "INTERRUPTED", "attempt-recovery": "FINISHED" },
+        "runOutcomes": { "run-recovery": "PASSED" }
+      }
+    },
+    {
+      "name": "preflight-policy-block-has-no-attempt",
+      "tasks": ["task-policy-pre"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-policy-pre", "contractId": "contract-policy-pre", "order": 1, "contentHash": "hash-policy-pre", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-policy-pre" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-policy-pre" },
+        { "op": "CREATE_RUN", "runId": "run-policy-pre", "contractId": "contract-policy-pre" },
+        { "op": "START_PREFLIGHT", "runId": "run-policy-pre" },
+        { "op": "PREFLIGHT_POLICY_BLOCKED", "runId": "run-policy-pre", "terminalEventId": "event-policy-pre" }
+      ],
+      "expect": {
+        "runStates": { "run-policy-pre": "FINISHED" },
+        "attemptCounts": { "run-policy-pre": 0 },
+        "runOutcomes": { "run-policy-pre": "POLICY_BLOCKED" }
+      }
+    },
+    {
+      "name": "confirmed-cancellation-cancels-only-the-active-attempt",
+      "tasks": ["task-cancel"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-cancel", "contractId": "contract-cancel", "order": 1, "contentHash": "hash-cancel", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-cancel" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-cancel" },
+        { "op": "CREATE_RUN", "runId": "run-cancel", "contractId": "contract-cancel" },
+        { "op": "START_PREFLIGHT", "runId": "run-cancel" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-cancel", "attemptId": "attempt-cancel" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-cancel" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel", "cancelRequestId": "cancel-request-active" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-cancel", "cancelRequestId": "cancel-request-active", "terminalEventId": "event-cancel" }
+      ],
+      "expect": {
+        "runStates": { "run-cancel": "CANCELLED" },
+        "attemptStates": { "attempt-cancel": "CANCELLED" },
+        "runOutcomes": { "run-cancel": "CANCELLED" }
+      }
+    },
+    {
+      "name": "preflight-interruption-retries-without-an-attempt",
+      "tasks": ["task-preflight-retry"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-preflight-retry", "contractId": "contract-preflight-retry", "order": 1, "contentHash": "hash-preflight-retry", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-preflight-retry" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-preflight-retry" },
+        { "op": "CREATE_RUN", "runId": "run-preflight-retry", "contractId": "contract-preflight-retry" },
+        { "op": "START_PREFLIGHT", "runId": "run-preflight-retry" },
+        { "op": "PREFLIGHT_CHECK_FAILED", "runId": "run-preflight-retry", "diagnosticId": "diagnostic-missing-tool" },
+        { "op": "INTERRUPT_PREFLIGHT", "runId": "run-preflight-retry" },
+        { "op": "RETRY_PREFLIGHT", "runId": "run-preflight-retry" }
+      ],
+      "expect": {
+        "runStates": { "run-preflight-retry": "PREFLIGHT" },
+        "attemptCounts": { "run-preflight-retry": 0 }
+      }
+    },
+    {
+      "name": "approval-changes-return-to-editable-draft",
+      "tasks": ["task-changes"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-changes", "contractId": "contract-changes", "order": 1, "contentHash": "hash-changes", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-changes" },
+        { "op": "RETURN_FOR_CHANGES", "contractId": "contract-changes" },
+        { "op": "EDIT_CONTRACT_CONTENT", "contractId": "contract-changes", "contentHash": "hash-changes-revised", "maxAttempts": 1 }
+      ],
+      "expect": {
+        "contractStates": { "contract-changes": "DRAFT" },
+        "contractContentHashes": { "contract-changes": "hash-changes-revised" },
+        "contractMaxAttempts": { "contract-changes": 1 }
+      }
+    },
+    {
+      "name": "failed-attempt-user-declines-repair",
+      "tasks": ["task-decline"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-decline", "contractId": "contract-decline", "order": 1, "contentHash": "hash-decline", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-decline" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-decline" },
+        { "op": "CREATE_RUN", "runId": "run-decline", "contractId": "contract-decline" },
+        { "op": "START_PREFLIGHT", "runId": "run-decline" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-decline", "attemptId": "attempt-decline" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-decline" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-decline", "candidateId": "candidate-decline" },
+        { "op": "RECORD_FAILED_VERDICT", "attemptId": "attempt-decline", "verdictId": "verdict-decline" },
+        { "op": "DECLINE_REPAIR", "runId": "run-decline" }
+      ],
+      "expect": {
+        "runStates": { "run-decline": "FINISHED" },
+        "runOutcomes": { "run-decline": "FAILED" }
+      }
+    },
+    {
+      "name": "one-attempt-quota-makes-failure-final",
+      "tasks": ["task-quota"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-quota", "contractId": "contract-quota", "order": 1, "contentHash": "hash-quota", "maxAttempts": 1 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-quota" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-quota" },
+        { "op": "CREATE_RUN", "runId": "run-quota", "contractId": "contract-quota" },
+        { "op": "START_PREFLIGHT", "runId": "run-quota" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-quota", "attemptId": "attempt-quota" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-quota" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-quota", "candidateId": "candidate-quota" },
+        { "op": "RECORD_FAILED_VERDICT", "attemptId": "attempt-quota", "verdictId": "verdict-quota" }
+      ],
+      "expect": {
+        "runStates": { "run-quota": "FINISHED" },
+        "runOutcomes": { "run-quota": "FAILED" }
+      }
+    },
+    {
+      "name": "interrupted-attempt-user-ends-inconclusive",
+      "tasks": ["task-end-interrupted"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-end-interrupted", "contractId": "contract-end-interrupted", "order": 1, "contentHash": "hash-end-interrupted", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-end-interrupted" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-end-interrupted" },
+        { "op": "CREATE_RUN", "runId": "run-end-interrupted", "contractId": "contract-end-interrupted" },
+        { "op": "START_PREFLIGHT", "runId": "run-end-interrupted" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-end-interrupted", "attemptId": "attempt-end-interrupted" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-end-interrupted" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-end-interrupted", "verdictId": "verdict-end-interrupted", "errorId": "error-end-interrupted" },
+        { "op": "END_INTERRUPTED_RUN", "runId": "run-end-interrupted" }
+      ],
+      "expect": {
+        "runStates": { "run-end-interrupted": "FINISHED" },
+        "attemptStates": { "attempt-end-interrupted": "INTERRUPTED" },
+        "runOutcomes": { "run-end-interrupted": "INCONCLUSIVE" }
+      }
+    },
+    {
+      "name": "in-attempt-permanent-policy-block-uses-verdict",
+      "tasks": ["task-policy-active"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-policy-active", "contractId": "contract-policy-active", "order": 1, "contentHash": "hash-policy-active", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-policy-active" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-policy-active" },
+        { "op": "CREATE_RUN", "runId": "run-policy-active", "contractId": "contract-policy-active" },
+        { "op": "START_PREFLIGHT", "runId": "run-policy-active" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-policy-active", "attemptId": "attempt-policy-active" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-policy-active" },
+        { "op": "IN_ATTEMPT_POLICY_BLOCKED", "attemptId": "attempt-policy-active", "verdictId": "verdict-policy-active", "effectQuiescence": "ALL_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED", "effectQuiescenceProofId": "policy-quiescence-active" }
+      ],
+      "expect": {
+        "runStates": { "run-policy-active": "FINISHED" },
+        "attemptStates": { "attempt-policy-active": "FINISHED" },
+        "runOutcomes": { "run-policy-active": "POLICY_BLOCKED" }
+      }
+    },
+    {
+      "name": "policy-block-after-candidate-is-sealed",
+      "tasks": ["task-policy-verifying"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-policy-verifying", "contractId": "contract-policy-verifying", "order": 1, "contentHash": "hash-policy-verifying", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-policy-verifying" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-policy-verifying" },
+        { "op": "CREATE_RUN", "runId": "run-policy-verifying", "contractId": "contract-policy-verifying" },
+        { "op": "START_PREFLIGHT", "runId": "run-policy-verifying" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-policy-verifying", "attemptId": "attempt-policy-verifying" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-policy-verifying" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-policy-verifying", "candidateId": "candidate-policy-verifying" },
+        { "op": "IN_ATTEMPT_POLICY_BLOCKED", "attemptId": "attempt-policy-verifying", "verdictId": "verdict-policy-verifying", "effectQuiescence": "ALL_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED", "effectQuiescenceProofId": "policy-quiescence-verifying" }
+      ],
+      "expect": {
+        "runStates": { "run-policy-verifying": "FINISHED" },
+        "attemptStates": { "attempt-policy-verifying": "FINISHED" },
+        "runOutcomes": { "run-policy-verifying": "POLICY_BLOCKED" }
+      }
+    },
+    {
+      "name": "unknown-cancel-stop-can-later-receive-matching-confirmation",
+      "tasks": ["task-cancel-unknown"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-cancel-unknown", "contractId": "contract-cancel-unknown", "order": 1, "contentHash": "hash-cancel-unknown", "maxAttempts": 1 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-cancel-unknown" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-cancel-unknown" },
+        { "op": "CREATE_RUN", "runId": "run-cancel-unknown", "contractId": "contract-cancel-unknown" },
+        { "op": "START_PREFLIGHT", "runId": "run-cancel-unknown" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-cancel-unknown", "attemptId": "attempt-cancel-unknown" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-cancel-unknown" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel-unknown", "cancelRequestId": "cancel-request-unknown" },
+        { "op": "STOP_RESULT_UNKNOWN", "runId": "run-cancel-unknown", "verdictId": "verdict-cancel-unknown" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel-unknown", "cancelRequestId": "cancel-request-unknown" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-cancel-unknown", "cancelRequestId": "cancel-request-unknown", "terminalEventId": "event-cancel-unknown" }
+      ],
+      "expect": {
+        "runStates": { "run-cancel-unknown": "CANCELLED" },
+        "attemptStates": { "attempt-cancel-unknown": "INTERRUPTED" },
+        "runOutcomes": { "run-cancel-unknown": "CANCELLED" }
+      }
+    },
+    {
+      "name": "exhausted-started-interruption-finishes-inconclusive",
+      "tasks": ["task-interrupt-started-final"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-interrupt-started-final", "contractId": "contract-interrupt-started-final", "order": 1, "contentHash": "hash-interrupt-started-final", "maxAttempts": 1 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-interrupt-started-final" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-interrupt-started-final" },
+        { "op": "CREATE_RUN", "runId": "run-interrupt-started-final", "contractId": "contract-interrupt-started-final" },
+        { "op": "START_PREFLIGHT", "runId": "run-interrupt-started-final" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-interrupt-started-final", "attemptId": "attempt-interrupt-started-final" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-interrupt-started-final", "verdictId": "verdict-interrupt-started-final", "errorId": "error-interrupt-started-final" }
+      ],
+      "expect": {
+        "runStates": { "run-interrupt-started-final": "FINISHED" },
+        "attemptStates": { "attempt-interrupt-started-final": "INTERRUPTED" },
+        "runOutcomes": { "run-interrupt-started-final": "INCONCLUSIVE" },
+        "runMaxAttempts": { "run-interrupt-started-final": 1 }
+      }
+    },
+    {
+      "name": "verifying-interruption-with-room-can-end-inconclusive",
+      "tasks": ["task-interrupt-verifying-room"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-interrupt-verifying-room", "contractId": "contract-interrupt-verifying-room", "order": 1, "contentHash": "hash-interrupt-verifying-room", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-interrupt-verifying-room" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-interrupt-verifying-room" },
+        { "op": "CREATE_RUN", "runId": "run-interrupt-verifying-room", "contractId": "contract-interrupt-verifying-room" },
+        { "op": "START_PREFLIGHT", "runId": "run-interrupt-verifying-room" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-interrupt-verifying-room", "attemptId": "attempt-interrupt-verifying-room" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-interrupt-verifying-room" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-interrupt-verifying-room", "candidateId": "candidate-interrupt-verifying-room" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-interrupt-verifying-room", "verdictId": "verdict-interrupt-verifying-room", "errorId": "error-interrupt-verifying-room", "recoverySafety": "ALL_PRIOR_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED_AND_WORKSPACE_RECONCILED", "recoverySafetyProofId": "recovery-safety-at-verification-interruption" },
+        { "op": "END_INTERRUPTED_RUN", "runId": "run-interrupt-verifying-room" }
+      ],
+      "expect": {
+        "runStates": { "run-interrupt-verifying-room": "FINISHED" },
+        "attemptStates": { "attempt-interrupt-verifying-room": "INTERRUPTED" },
+        "runOutcomes": { "run-interrupt-verifying-room": "INCONCLUSIVE" }
+      }
+    },
+    {
+      "name": "exhausted-verifying-interruption-finishes-inconclusive",
+      "tasks": ["task-interrupt-verifying-final"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-interrupt-verifying-final", "contractId": "contract-interrupt-verifying-final", "order": 1, "contentHash": "hash-interrupt-verifying-final", "maxAttempts": 1 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-interrupt-verifying-final" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-interrupt-verifying-final" },
+        { "op": "CREATE_RUN", "runId": "run-interrupt-verifying-final", "contractId": "contract-interrupt-verifying-final" },
+        { "op": "START_PREFLIGHT", "runId": "run-interrupt-verifying-final" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-interrupt-verifying-final", "attemptId": "attempt-interrupt-verifying-final" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-interrupt-verifying-final" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-interrupt-verifying-final", "candidateId": "candidate-interrupt-verifying-final" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-interrupt-verifying-final", "verdictId": "verdict-interrupt-verifying-final", "errorId": "error-interrupt-verifying-final" }
+      ],
+      "expect": {
+        "runStates": { "run-interrupt-verifying-final": "FINISHED" },
+        "attemptStates": { "attempt-interrupt-verifying-final": "INTERRUPTED" },
+        "runOutcomes": { "run-interrupt-verifying-final": "INCONCLUSIVE" }
+      }
+    },
+    {
+      "name": "policy-block-before-executor-starts",
+      "tasks": ["task-policy-started"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-policy-started", "contractId": "contract-policy-started", "order": 1, "contentHash": "hash-policy-started", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-policy-started" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-policy-started" },
+        { "op": "CREATE_RUN", "runId": "run-policy-started", "contractId": "contract-policy-started" },
+        { "op": "START_PREFLIGHT", "runId": "run-policy-started" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-policy-started", "attemptId": "attempt-policy-started" },
+        { "op": "IN_ATTEMPT_POLICY_BLOCKED", "attemptId": "attempt-policy-started", "verdictId": "verdict-policy-started", "effectQuiescence": "ALL_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED", "effectQuiescenceProofId": "policy-quiescence-started" }
+      ],
+      "expect": {
+        "runStates": { "run-policy-started": "FINISHED" },
+        "attemptStates": { "attempt-policy-started": "FINISHED" },
+        "runOutcomes": { "run-policy-started": "POLICY_BLOCKED" }
+      }
+    },
+    {
+      "name": "unknown-stop-without-executor-start-ack-ends-inconclusive",
+      "tasks": ["task-stop-unknown-started"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-stop-unknown-started", "contractId": "contract-stop-unknown-started", "order": 1, "contentHash": "hash-stop-unknown-started", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-stop-unknown-started" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-stop-unknown-started" },
+        { "op": "CREATE_RUN", "runId": "run-stop-unknown-started", "contractId": "contract-stop-unknown-started" },
+        { "op": "START_PREFLIGHT", "runId": "run-stop-unknown-started" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-stop-unknown-started", "attemptId": "attempt-stop-unknown-started" },
+        { "op": "REQUEST_CANCEL", "runId": "run-stop-unknown-started", "cancelRequestId": "cancel-stop-unknown-started" },
+        { "op": "STOP_RESULT_UNKNOWN", "runId": "run-stop-unknown-started", "verdictId": "verdict-stop-unknown-started", "dispatchProvenance": "DISPATCHED_BEFORE_CANCEL" },
+        { "op": "END_INTERRUPTED_RUN", "runId": "run-stop-unknown-started" }
+      ],
+      "expect": {
+        "runStates": { "run-stop-unknown-started": "FINISHED" },
+        "attemptStates": { "attempt-stop-unknown-started": "INTERRUPTED" },
+        "runOutcomes": { "run-stop-unknown-started": "INCONCLUSIVE" }
+      }
+    },
+    {
+      "name": "unknown-stop-during-verification-ends-inconclusive",
+      "tasks": ["task-stop-unknown-verifying"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-stop-unknown-verifying", "contractId": "contract-stop-unknown-verifying", "order": 1, "contentHash": "hash-stop-unknown-verifying", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-stop-unknown-verifying" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-stop-unknown-verifying" },
+        { "op": "CREATE_RUN", "runId": "run-stop-unknown-verifying", "contractId": "contract-stop-unknown-verifying" },
+        { "op": "START_PREFLIGHT", "runId": "run-stop-unknown-verifying" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-stop-unknown-verifying", "attemptId": "attempt-stop-unknown-verifying" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-stop-unknown-verifying" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-stop-unknown-verifying", "candidateId": "candidate-stop-unknown-verifying" },
+        { "op": "REQUEST_CANCEL", "runId": "run-stop-unknown-verifying", "cancelRequestId": "cancel-stop-unknown-verifying" },
+        { "op": "STOP_RESULT_UNKNOWN", "runId": "run-stop-unknown-verifying", "verdictId": "verdict-stop-unknown-verifying", "verificationStopProvenance": "EFFECT_CAPABLE_VERIFICATION_DISPATCHED_BEFORE_CANCEL" },
+        { "op": "END_INTERRUPTED_RUN", "runId": "run-stop-unknown-verifying" }
+      ],
+      "expect": {
+        "runStates": { "run-stop-unknown-verifying": "FINISHED" },
+        "attemptStates": { "attempt-stop-unknown-verifying": "INTERRUPTED" },
+        "runOutcomes": { "run-stop-unknown-verifying": "INCONCLUSIVE" }
+      }
+    },
+    {
+      "name": "queued-run-can-be-cancelled-before-preflight",
+      "tasks": ["task-cancel-queued"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-cancel-queued", "contractId": "contract-cancel-queued", "order": 1, "contentHash": "hash-cancel-queued", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-cancel-queued" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-cancel-queued" },
+        { "op": "CREATE_RUN", "runId": "run-cancel-queued", "contractId": "contract-cancel-queued" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel-queued", "cancelRequestId": "cancel-request-queued" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-cancel-queued", "cancelRequestId": "cancel-request-queued", "terminalEventId": "event-cancel-queued" }
+      ],
+      "expect": {
+        "runStates": { "run-cancel-queued": "CANCELLED" },
+        "attemptCounts": { "run-cancel-queued": 0 },
+        "runOutcomes": { "run-cancel-queued": "CANCELLED" }
+      }
+    },
+    {
+      "name": "preflight-run-can-be-cancelled-before-an-attempt",
+      "tasks": ["task-cancel-preflight"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-cancel-preflight", "contractId": "contract-cancel-preflight", "order": 1, "contentHash": "hash-cancel-preflight", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-cancel-preflight" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-cancel-preflight" },
+        { "op": "CREATE_RUN", "runId": "run-cancel-preflight", "contractId": "contract-cancel-preflight" },
+        { "op": "START_PREFLIGHT", "runId": "run-cancel-preflight" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel-preflight", "cancelRequestId": "cancel-request-preflight" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-cancel-preflight", "cancelRequestId": "cancel-request-preflight", "terminalEventId": "event-cancel-preflight" }
+      ],
+      "expect": {
+        "runStates": { "run-cancel-preflight": "CANCELLED" },
+        "attemptCounts": { "run-cancel-preflight": 0 },
+        "runOutcomes": { "run-cancel-preflight": "CANCELLED" }
+      }
+    },
+    {
+      "name": "started-attempt-can-be-cancelled-before-execution",
+      "tasks": ["task-cancel-started"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-cancel-started", "contractId": "contract-cancel-started", "order": 1, "contentHash": "hash-cancel-started", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-cancel-started" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-cancel-started" },
+        { "op": "CREATE_RUN", "runId": "run-cancel-started", "contractId": "contract-cancel-started" },
+        { "op": "START_PREFLIGHT", "runId": "run-cancel-started" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-cancel-started", "attemptId": "attempt-cancel-started" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel-started", "cancelRequestId": "cancel-request-started" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-cancel-started", "cancelRequestId": "cancel-request-started", "terminalEventId": "event-cancel-started" }
+      ],
+      "expect": {
+        "runStates": { "run-cancel-started": "CANCELLED" },
+        "attemptStates": { "attempt-cancel-started": "CANCELLED" },
+        "runOutcomes": { "run-cancel-started": "CANCELLED" }
+      }
+    },
+    {
+      "name": "verifying-attempt-can-be-cancelled-before-adjudication",
+      "tasks": ["task-cancel-verifying"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-cancel-verifying", "contractId": "contract-cancel-verifying", "order": 1, "contentHash": "hash-cancel-verifying", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-cancel-verifying" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-cancel-verifying" },
+        { "op": "CREATE_RUN", "runId": "run-cancel-verifying", "contractId": "contract-cancel-verifying" },
+        { "op": "START_PREFLIGHT", "runId": "run-cancel-verifying" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-cancel-verifying", "attemptId": "attempt-cancel-verifying" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-cancel-verifying" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-cancel-verifying", "candidateId": "candidate-cancel-verifying" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel-verifying", "cancelRequestId": "cancel-request-verifying" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-cancel-verifying", "cancelRequestId": "cancel-request-verifying", "terminalEventId": "event-cancel-verifying" }
+      ],
+      "expect": {
+        "runStates": { "run-cancel-verifying": "CANCELLED" },
+        "attemptStates": { "attempt-cancel-verifying": "CANCELLED" },
+        "runOutcomes": { "run-cancel-verifying": "CANCELLED" }
+      }
+    },
+    {
+      "name": "interrupted-preflight-can-be-abandoned-as-cancelled",
+      "tasks": ["task-cancel-interrupted-preflight"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-cancel-interrupted-preflight", "contractId": "contract-cancel-interrupted-preflight", "order": 1, "contentHash": "hash-cancel-interrupted-preflight", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-cancel-interrupted-preflight" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-cancel-interrupted-preflight" },
+        { "op": "CREATE_RUN", "runId": "run-cancel-interrupted-preflight", "contractId": "contract-cancel-interrupted-preflight" },
+        { "op": "START_PREFLIGHT", "runId": "run-cancel-interrupted-preflight" },
+        { "op": "INTERRUPT_PREFLIGHT", "runId": "run-cancel-interrupted-preflight" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel-interrupted-preflight", "cancelRequestId": "cancel-request-interrupted-preflight" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-cancel-interrupted-preflight", "cancelRequestId": "cancel-request-interrupted-preflight", "terminalEventId": "event-cancel-interrupted-preflight" }
+      ],
+      "expect": {
+        "runStates": { "run-cancel-interrupted-preflight": "CANCELLED" },
+        "attemptCounts": { "run-cancel-interrupted-preflight": 0 },
+        "runOutcomes": { "run-cancel-interrupted-preflight": "CANCELLED" }
+      }
+    },
+    {
+      "name": "executor-and-verifier-may-win-after-cancel-request",
+      "tasks": ["task-cancel-race-pass"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-cancel-race-pass", "contractId": "contract-cancel-race-pass", "order": 1, "contentHash": "hash-cancel-race-pass", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-cancel-race-pass" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-cancel-race-pass" },
+        { "op": "CREATE_RUN", "runId": "run-cancel-race-pass", "contractId": "contract-cancel-race-pass" },
+        { "op": "START_PREFLIGHT", "runId": "run-cancel-race-pass" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-cancel-race-pass", "attemptId": "attempt-cancel-race-pass" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-cancel-race-pass" },
+        { "op": "REQUEST_CANCEL", "runId": "run-cancel-race-pass", "cancelRequestId": "cancel-request-race-pass" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-cancel-race-pass", "candidateId": "candidate-cancel-race-pass" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-cancel-race-pass", "verdictId": "verdict-cancel-race-pass", "postCancelConvergence": "PRE_DISPATCHED_OR_CONTAINED" }
+      ],
+      "expect": {
+        "runStates": { "run-cancel-race-pass": "FINISHED" },
+        "attemptStates": { "attempt-cancel-race-pass": "FINISHED" },
+        "runOutcomes": { "run-cancel-race-pass": "PASSED" }
+      }
+    },
+    {
+      "name": "unacknowledged-dispatch-can-complete-before-cancel",
+      "tasks": ["task-unacknowledged-completion"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-unacknowledged-completion", "contractId": "contract-unacknowledged-completion", "order": 1, "contentHash": "hash-unacknowledged-completion", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-unacknowledged-completion" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-unacknowledged-completion" },
+        { "op": "CREATE_RUN", "runId": "run-unacknowledged-completion", "contractId": "contract-unacknowledged-completion" },
+        { "op": "START_PREFLIGHT", "runId": "run-unacknowledged-completion" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-unacknowledged-completion", "attemptId": "attempt-unacknowledged-completion" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-unacknowledged-completion", "candidateId": "candidate-unacknowledged-completion", "dispatchProvenance": "DISPATCHED_WITHOUT_START_ACK" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-unacknowledged-completion", "verdictId": "verdict-unacknowledged-completion" }
+      ],
+      "expect": {
+        "runStates": { "run-unacknowledged-completion": "FINISHED" },
+        "attemptStates": { "attempt-unacknowledged-completion": "FINISHED" },
+        "runOutcomes": { "run-unacknowledged-completion": "PASSED" }
+      }
+    },
+    {
+      "name": "pre-cancel-dispatch-can-complete-after-cancel-without-start-ack",
+      "tasks": ["task-pre-cancel-unacknowledged"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-pre-cancel-unacknowledged", "contractId": "contract-pre-cancel-unacknowledged", "order": 1, "contentHash": "hash-pre-cancel-unacknowledged", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-pre-cancel-unacknowledged" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-pre-cancel-unacknowledged" },
+        { "op": "CREATE_RUN", "runId": "run-pre-cancel-unacknowledged", "contractId": "contract-pre-cancel-unacknowledged" },
+        { "op": "START_PREFLIGHT", "runId": "run-pre-cancel-unacknowledged" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-pre-cancel-unacknowledged", "attemptId": "attempt-pre-cancel-unacknowledged" },
+        { "op": "REQUEST_CANCEL", "runId": "run-pre-cancel-unacknowledged", "cancelRequestId": "cancel-pre-cancel-unacknowledged" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-pre-cancel-unacknowledged", "candidateId": "candidate-pre-cancel-unacknowledged", "dispatchProvenance": "DISPATCHED_BEFORE_CANCEL" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-pre-cancel-unacknowledged", "verdictId": "verdict-pre-cancel-unacknowledged", "postCancelConvergence": "PRE_DISPATCHED_OR_CONTAINED" }
+      ],
+      "expect": {
+        "runStates": { "run-pre-cancel-unacknowledged": "FINISHED" },
+        "attemptStates": { "attempt-pre-cancel-unacknowledged": "FINISHED" },
+        "runOutcomes": { "run-pre-cancel-unacknowledged": "PASSED" }
+      }
+    }
+  ],
+  "invalidScenarios": [
+    {
+      "name": "run-cannot-bind-a-draft-contract",
+      "tasks": ["task-invalid-draft"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-draft", "contractId": "contract-invalid-draft", "order": 1, "contentHash": "hash-invalid-draft", "maxAttempts": 2 },
+        { "op": "CREATE_RUN", "runId": "run-invalid-draft", "contractId": "contract-invalid-draft" }
+      ],
+      "expectedError": "currently FROZEN"
+    },
+    {
+      "name": "freeze-cannot-skip-approval-waiting",
+      "tasks": ["task-invalid-freeze"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-freeze", "contractId": "contract-invalid-freeze", "order": 1, "contentHash": "hash-invalid-freeze", "maxAttempts": 2 },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-freeze" }
+      ],
+      "expectedError": "AWAITING_APPROVAL"
+    },
+    {
+      "name": "draft-successor-cannot-supersede-current-contract",
+      "tasks": ["task-invalid-successor"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-successor", "contractId": "contract-current", "order": 1, "contentHash": "hash-current", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-current" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-current" },
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-successor", "contractId": "contract-draft-successor", "order": 2, "contentHash": "hash-successor", "maxAttempts": 2 },
+        { "op": "APPROVE_FREEZE_AND_SUPERSEDE", "contractId": "contract-draft-successor", "predecessorId": "contract-current" }
+      ],
+      "expectedError": "AWAITING_APPROVAL"
+    },
+    {
+      "name": "execution-cannot-start-before-preflight",
+      "tasks": ["task-invalid-preflight"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-preflight", "contractId": "contract-invalid-preflight", "order": 1, "contentHash": "hash-invalid-preflight", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-preflight" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-preflight" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-preflight", "contractId": "contract-invalid-preflight" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-preflight", "attemptId": "attempt-invalid-preflight" }
+      ],
+      "expectedError": "PREFLIGHT"
+    },
+    {
+      "name": "verdict-cannot-precede-verification",
+      "tasks": ["task-invalid-verdict"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-verdict", "contractId": "contract-invalid-verdict", "order": 1, "contentHash": "hash-invalid-verdict", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-verdict" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-verdict" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-verdict", "contractId": "contract-invalid-verdict" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-verdict" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-verdict", "attemptId": "attempt-invalid-verdict" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-verdict" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-invalid-verdict", "verdictId": "verdict-invalid" }
+      ],
+      "expectedError": "VERIFYING"
+    },
+    {
+      "name": "cancel-request-is-not-cancel-confirmation",
+      "tasks": ["task-invalid-cancel"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-cancel", "contractId": "contract-invalid-cancel", "order": 1, "contentHash": "hash-invalid-cancel", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-cancel" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-cancel" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-cancel", "contractId": "contract-invalid-cancel" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-cancel" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-invalid-cancel", "cancelRequestId": "cancel-request-never-recorded", "terminalEventId": "event-invalid-cancel" }
+      ],
+      "expectedError": "requested before it is confirmed"
+    },
+    {
+      "name": "zero-attempt-interruption-cannot-end-inconclusive",
+      "tasks": ["task-invalid-zero-attempt"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-zero-attempt", "contractId": "contract-invalid-zero-attempt", "order": 1, "contentHash": "hash-invalid-zero-attempt", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-zero-attempt" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-zero-attempt" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-zero-attempt", "contractId": "contract-invalid-zero-attempt" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-zero-attempt" },
+        { "op": "INTERRUPT_PREFLIGHT", "runId": "run-invalid-zero-attempt" },
+        { "op": "END_INTERRUPTED_RUN", "runId": "run-invalid-zero-attempt" }
+      ],
+      "expectedError": "at least one INCONCLUSIVE Attempt"
+    },
+    {
+      "name": "waiting-proposal-cannot-be-edited-in-place",
+      "tasks": ["task-invalid-edit-waiting"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-edit-waiting", "contractId": "contract-invalid-edit-waiting", "order": 1, "contentHash": "hash-invalid-edit-waiting", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-edit-waiting" },
+        { "op": "EDIT_CONTRACT_CONTENT", "contractId": "contract-invalid-edit-waiting", "contentHash": "hash-illegal-waiting-edit", "maxAttempts": 1 }
+      ],
+      "expectedError": "DRAFT or CLARIFYING"
+    },
+    {
+      "name": "run-cannot-override-frozen-contract-attempt-limit",
+      "tasks": ["task-invalid-quota-override"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-quota-override", "contractId": "contract-invalid-quota-override", "order": 1, "contentHash": "hash-invalid-quota-override", "maxAttempts": 1 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-quota-override" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-quota-override" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-quota-override", "contractId": "contract-invalid-quota-override", "maxAttempts": 2 }
+      ],
+      "expectedError": "must equal its Frozen Contract"
+    },
+    {
+      "name": "cancel-fence-blocks-starting-preflight",
+      "tasks": ["task-invalid-cancel-preflight-start"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-cancel-preflight-start", "contractId": "contract-invalid-cancel-preflight-start", "order": 1, "contentHash": "hash-invalid-cancel-preflight-start", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-cancel-preflight-start" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-cancel-preflight-start" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-cancel-preflight-start", "contractId": "contract-invalid-cancel-preflight-start" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-cancel-preflight-start", "cancelRequestId": "cancel-invalid-preflight-start" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-cancel-preflight-start" }
+      ],
+      "expectedError": "cannot start new effectful work"
+    },
+    {
+      "name": "cancel-fence-blocks-creating-initial-attempt",
+      "tasks": ["task-invalid-cancel-initial"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-cancel-initial", "contractId": "contract-invalid-cancel-initial", "order": 1, "contentHash": "hash-invalid-cancel-initial", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-cancel-initial" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-cancel-initial" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-cancel-initial", "contractId": "contract-invalid-cancel-initial" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-cancel-initial" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-cancel-initial", "cancelRequestId": "cancel-invalid-initial" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-cancel-initial", "attemptId": "attempt-invalid-cancel-initial" }
+      ],
+      "expectedError": "cannot start new effectful work"
+    },
+    {
+      "name": "cancel-fence-blocks-starting-executor",
+      "tasks": ["task-invalid-cancel-executor"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-cancel-executor", "contractId": "contract-invalid-cancel-executor", "order": 1, "contentHash": "hash-invalid-cancel-executor", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-cancel-executor" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-cancel-executor" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-cancel-executor", "contractId": "contract-invalid-cancel-executor" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-cancel-executor" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-cancel-executor", "attemptId": "attempt-invalid-cancel-executor" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-cancel-executor", "cancelRequestId": "cancel-invalid-executor" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-cancel-executor" }
+      ],
+      "expectedError": "cannot start new effectful work"
+    },
+    {
+      "name": "cancel-fence-blocks-retrying-interrupted-preflight",
+      "tasks": ["task-invalid-cancel-retry"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-cancel-retry", "contractId": "contract-invalid-cancel-retry", "order": 1, "contentHash": "hash-invalid-cancel-retry", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-cancel-retry" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-cancel-retry" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-cancel-retry", "contractId": "contract-invalid-cancel-retry" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-cancel-retry" },
+        { "op": "INTERRUPT_PREFLIGHT", "runId": "run-invalid-cancel-retry" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-cancel-retry", "cancelRequestId": "cancel-invalid-retry" },
+        { "op": "RETRY_PREFLIGHT", "runId": "run-invalid-cancel-retry" }
+      ],
+      "expectedError": "cannot start new effectful work"
+    },
+    {
+      "name": "cancel-fence-blocks-repair-after-failed-race",
+      "tasks": ["task-invalid-cancel-repair"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-cancel-repair", "contractId": "contract-invalid-cancel-repair", "order": 1, "contentHash": "hash-invalid-cancel-repair", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-cancel-repair" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-cancel-repair" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-cancel-repair", "contractId": "contract-invalid-cancel-repair" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-cancel-repair" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-cancel-repair", "attemptId": "attempt-invalid-cancel-repair-1" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-cancel-repair-1" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-invalid-cancel-repair-1", "candidateId": "candidate-invalid-cancel-repair" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-cancel-repair", "cancelRequestId": "cancel-invalid-repair" },
+        { "op": "RECORD_FAILED_VERDICT", "attemptId": "attempt-invalid-cancel-repair-1", "verdictId": "verdict-invalid-cancel-repair", "postCancelConvergence": "PRE_DISPATCHED_OR_CONTAINED" },
+        { "op": "START_REPAIR_ATTEMPT", "runId": "run-invalid-cancel-repair", "attemptId": "attempt-invalid-cancel-repair-2" }
+      ],
+      "expectedError": "cannot start new effectful work"
+    },
+    {
+      "name": "unresolved-unknown-stop-blocks-recovery",
+      "tasks": ["task-invalid-unknown-recovery"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-unknown-recovery", "contractId": "contract-invalid-unknown-recovery", "order": 1, "contentHash": "hash-invalid-unknown-recovery", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-unknown-recovery" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-unknown-recovery" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-unknown-recovery", "contractId": "contract-invalid-unknown-recovery" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-unknown-recovery" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-unknown-recovery", "attemptId": "attempt-invalid-unknown-recovery-1" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-unknown-recovery-1" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-unknown-recovery", "cancelRequestId": "cancel-invalid-unknown-recovery" },
+        { "op": "STOP_RESULT_UNKNOWN", "runId": "run-invalid-unknown-recovery", "verdictId": "verdict-invalid-unknown-recovery" },
+        { "op": "START_RECOVERY_ATTEMPT", "runId": "run-invalid-unknown-recovery", "attemptId": "attempt-invalid-unknown-recovery-2", "trigger": "verdict" }
+      ],
+      "expectedError": "cannot start new effectful work"
+    },
+    {
+      "name": "late-cancel-confirmation-must-match-the-request",
+      "tasks": ["task-invalid-cancel-correlation"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-cancel-correlation", "contractId": "contract-invalid-cancel-correlation", "order": 1, "contentHash": "hash-invalid-cancel-correlation", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-cancel-correlation" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-cancel-correlation" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-cancel-correlation", "contractId": "contract-invalid-cancel-correlation" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-cancel-correlation" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-cancel-correlation", "attemptId": "attempt-invalid-cancel-correlation" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-cancel-correlation" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-cancel-correlation", "cancelRequestId": "cancel-correlation-original" },
+        { "op": "STOP_RESULT_UNKNOWN", "runId": "run-invalid-cancel-correlation", "verdictId": "verdict-invalid-cancel-correlation" },
+        { "op": "CONFIRM_CANCEL", "runId": "run-invalid-cancel-correlation", "cancelRequestId": "cancel-correlation-unrelated", "terminalEventId": "event-invalid-cancel-correlation" }
+      ],
+      "expectedError": "must match the pending request"
+    },
+    {
+      "name": "post-cancel-adjudication-needs-safe-convergence-proof",
+      "tasks": ["task-invalid-post-cancel-verification"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-post-cancel-verification", "contractId": "contract-invalid-post-cancel-verification", "order": 1, "contentHash": "hash-invalid-post-cancel-verification", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-post-cancel-verification" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-post-cancel-verification" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-post-cancel-verification", "contractId": "contract-invalid-post-cancel-verification" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-post-cancel-verification" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-post-cancel-verification", "attemptId": "attempt-invalid-post-cancel-verification" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-post-cancel-verification" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-post-cancel-verification", "cancelRequestId": "cancel-invalid-post-cancel-verification" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-invalid-post-cancel-verification", "candidateId": "candidate-invalid-post-cancel-verification" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-invalid-post-cancel-verification", "verdictId": "verdict-invalid-post-cancel-verification" }
+      ],
+      "expectedError": "pre-dispatched or effect-contained"
+    },
+    {
+      "name": "started-completion-after-cancel-needs-dispatch-provenance",
+      "tasks": ["task-invalid-missing-dispatch-provenance"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-missing-dispatch-provenance", "contractId": "contract-invalid-missing-dispatch-provenance", "order": 1, "contentHash": "hash-invalid-missing-dispatch-provenance", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-missing-dispatch-provenance" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-missing-dispatch-provenance" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-missing-dispatch-provenance", "contractId": "contract-invalid-missing-dispatch-provenance" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-missing-dispatch-provenance" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-missing-dispatch-provenance", "attemptId": "attempt-invalid-missing-dispatch-provenance" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-missing-dispatch-provenance", "cancelRequestId": "cancel-invalid-missing-dispatch-provenance" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-invalid-missing-dispatch-provenance", "candidateId": "candidate-invalid-missing-dispatch-provenance" }
+      ],
+      "expectedError": "DISPATCHED_BEFORE_CANCEL provenance"
+    },
+    {
+      "name": "post-cancel-dispatch-cannot-masquerade-as-pre-cancel-work",
+      "tasks": ["task-invalid-after-cancel-dispatch"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-after-cancel-dispatch", "contractId": "contract-invalid-after-cancel-dispatch", "order": 1, "contentHash": "hash-invalid-after-cancel-dispatch", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-after-cancel-dispatch" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-after-cancel-dispatch" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-after-cancel-dispatch", "contractId": "contract-invalid-after-cancel-dispatch" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-after-cancel-dispatch" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-after-cancel-dispatch", "attemptId": "attempt-invalid-after-cancel-dispatch" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-after-cancel-dispatch", "cancelRequestId": "cancel-invalid-after-cancel-dispatch" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-invalid-after-cancel-dispatch", "candidateId": "candidate-invalid-after-cancel-dispatch", "dispatchProvenance": "DISPATCHED_AFTER_CANCEL" }
+      ],
+      "expectedError": "DISPATCHED_BEFORE_CANCEL provenance"
+    },
+    {
+      "name": "started-unknown-stop-needs-pre-cancel-dispatch-provenance",
+      "tasks": ["task-invalid-unknown-stop-dispatch"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-unknown-stop-dispatch", "contractId": "contract-invalid-unknown-stop-dispatch", "order": 1, "contentHash": "hash-invalid-unknown-stop-dispatch", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-unknown-stop-dispatch" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-unknown-stop-dispatch" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-unknown-stop-dispatch", "contractId": "contract-invalid-unknown-stop-dispatch" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-unknown-stop-dispatch" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-unknown-stop-dispatch", "attemptId": "attempt-invalid-unknown-stop-dispatch" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-unknown-stop-dispatch", "cancelRequestId": "cancel-invalid-unknown-stop-dispatch" },
+        { "op": "STOP_RESULT_UNKNOWN", "runId": "run-invalid-unknown-stop-dispatch", "verdictId": "verdict-invalid-unknown-stop-dispatch" }
+      ],
+      "expectedError": "DISPATCHED_BEFORE_CANCEL provenance"
+    },
+    {
+      "name": "started-uncertainty-cannot-recover-without-reconciliation",
+      "tasks": ["task-invalid-started-recovery-safety"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-started-recovery-safety", "contractId": "contract-invalid-started-recovery-safety", "order": 1, "contentHash": "hash-invalid-started-recovery-safety", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-started-recovery-safety" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-started-recovery-safety" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-started-recovery-safety", "contractId": "contract-invalid-started-recovery-safety" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-started-recovery-safety" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-started-recovery-safety", "attemptId": "attempt-invalid-started-recovery-safety" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-invalid-started-recovery-safety", "verdictId": "verdict-invalid-started-recovery-safety", "errorId": "error-invalid-started-recovery-safety" },
+        { "op": "START_RECOVERY_ATTEMPT", "runId": "run-invalid-started-recovery-safety", "attemptId": "attempt-invalid-started-recovery-2", "trigger": "error" }
+      ],
+      "expectedError": "all prior effect-capable"
+    },
+    {
+      "name": "executing-uncertainty-cannot-recover-without-reconciliation",
+      "tasks": ["task-invalid-executing-recovery-safety"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-executing-recovery-safety", "contractId": "contract-invalid-executing-recovery-safety", "order": 1, "contentHash": "hash-invalid-executing-recovery-safety", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-executing-recovery-safety" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-executing-recovery-safety" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-executing-recovery-safety", "contractId": "contract-invalid-executing-recovery-safety" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-executing-recovery-safety" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-executing-recovery-safety", "attemptId": "attempt-invalid-executing-recovery-safety" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-executing-recovery-safety" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-invalid-executing-recovery-safety", "verdictId": "verdict-invalid-executing-recovery-safety", "errorId": "error-invalid-executing-recovery-safety" },
+        { "op": "START_RECOVERY_ATTEMPT", "runId": "run-invalid-executing-recovery-safety", "attemptId": "attempt-invalid-executing-recovery-2", "trigger": "error" }
+      ],
+      "expectedError": "all prior effect-capable"
+    },
+    {
+      "name": "interruption-safety-witness-needs-a-proof-identity",
+      "tasks": ["task-invalid-recovery-proof-id"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-recovery-proof-id", "contractId": "contract-invalid-recovery-proof-id", "order": 1, "contentHash": "hash-invalid-recovery-proof-id", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-recovery-proof-id" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-recovery-proof-id" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-recovery-proof-id", "contractId": "contract-invalid-recovery-proof-id" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-recovery-proof-id" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-recovery-proof-id", "attemptId": "attempt-invalid-recovery-proof-id" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-recovery-proof-id" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-invalid-recovery-proof-id", "verdictId": "verdict-invalid-recovery-proof-id", "recoverySafety": "ALL_PRIOR_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED_AND_WORKSPACE_RECONCILED" }
+      ],
+      "expectedError": "Recovery safety proof needs an identity"
+    },
+    {
+      "name": "recovery-safety-confirmation-cannot-open-an-unknown-cancel-stop",
+      "tasks": ["task-invalid-confirm-unknown-stop"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-confirm-unknown-stop", "contractId": "contract-invalid-confirm-unknown-stop", "order": 1, "contentHash": "hash-invalid-confirm-unknown-stop", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-confirm-unknown-stop" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-confirm-unknown-stop" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-confirm-unknown-stop", "contractId": "contract-invalid-confirm-unknown-stop" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-confirm-unknown-stop" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-confirm-unknown-stop", "attemptId": "attempt-invalid-confirm-unknown-stop" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-confirm-unknown-stop" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-confirm-unknown-stop", "cancelRequestId": "cancel-invalid-confirm-unknown-stop" },
+        { "op": "STOP_RESULT_UNKNOWN", "runId": "run-invalid-confirm-unknown-stop", "verdictId": "verdict-invalid-confirm-unknown-stop" },
+        { "op": "CONFIRM_RECOVERY_SAFETY", "attemptId": "attempt-invalid-confirm-unknown-stop", "recoverySafety": "ALL_PRIOR_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED_AND_WORKSPACE_RECONCILED", "recoverySafetyProofId": "recovery-safety-invalid-unknown-stop" }
+      ],
+      "expectedError": "after cancellation was requested"
+    },
+    {
+      "name": "recovery-safety-confirmation-is-append-only",
+      "tasks": ["task-invalid-repeat-recovery-safety"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-repeat-recovery-safety", "contractId": "contract-invalid-repeat-recovery-safety", "order": 1, "contentHash": "hash-invalid-repeat-recovery-safety", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-repeat-recovery-safety" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-repeat-recovery-safety" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-repeat-recovery-safety", "contractId": "contract-invalid-repeat-recovery-safety" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-repeat-recovery-safety" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-repeat-recovery-safety", "attemptId": "attempt-invalid-repeat-recovery-safety" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-repeat-recovery-safety" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-invalid-repeat-recovery-safety", "verdictId": "verdict-invalid-repeat-recovery-safety", "errorId": "error-invalid-repeat-recovery-safety" },
+        { "op": "CONFIRM_RECOVERY_SAFETY", "attemptId": "attempt-invalid-repeat-recovery-safety", "recoverySafety": "ALL_PRIOR_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED_AND_WORKSPACE_RECONCILED", "recoverySafetyProofId": "recovery-safety-first" },
+        { "op": "CONFIRM_RECOVERY_SAFETY", "attemptId": "attempt-invalid-repeat-recovery-safety", "recoverySafety": "ALL_PRIOR_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED_AND_WORKSPACE_RECONCILED", "recoverySafetyProofId": "recovery-safety-second" }
+      ],
+      "expectedError": "already recorded"
+    },
+    {
+      "name": "verifying-unknown-stop-needs-verifier-dispatch-provenance",
+      "tasks": ["task-invalid-verifier-stop-provenance"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-verifier-stop-provenance", "contractId": "contract-invalid-verifier-stop-provenance", "order": 1, "contentHash": "hash-invalid-verifier-stop-provenance", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-verifier-stop-provenance" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-verifier-stop-provenance" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-verifier-stop-provenance", "contractId": "contract-invalid-verifier-stop-provenance" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-verifier-stop-provenance" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-verifier-stop-provenance", "attemptId": "attempt-invalid-verifier-stop-provenance" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-verifier-stop-provenance" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-invalid-verifier-stop-provenance", "candidateId": "candidate-invalid-verifier-stop-provenance" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-verifier-stop-provenance", "cancelRequestId": "cancel-invalid-verifier-stop-provenance" },
+        { "op": "STOP_RESULT_UNKNOWN", "runId": "run-invalid-verifier-stop-provenance", "verdictId": "verdict-invalid-verifier-stop-provenance" }
+      ],
+      "expectedError": "pre-cancel effect-capable verifier dispatch provenance"
+    },
+    {
+      "name": "policy-terminalization-needs-a-proof-identity",
+      "tasks": ["task-invalid-policy-quiescence-proof"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-policy-quiescence-proof", "contractId": "contract-invalid-policy-quiescence-proof", "order": 1, "contentHash": "hash-invalid-policy-quiescence-proof", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-policy-quiescence-proof" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-policy-quiescence-proof" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-policy-quiescence-proof", "contractId": "contract-invalid-policy-quiescence-proof" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-policy-quiescence-proof" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-policy-quiescence-proof", "attemptId": "attempt-invalid-policy-quiescence-proof" },
+        { "op": "IN_ATTEMPT_POLICY_BLOCKED", "attemptId": "attempt-invalid-policy-quiescence-proof", "verdictId": "verdict-invalid-policy-quiescence-proof", "effectQuiescence": "ALL_EFFECT_CAPABLE_WORK_STOPPED_OR_NEVER_STARTED" }
+      ],
+      "expectedError": "Policy terminalization proof needs an identity"
+    },
+    {
+      "name": "interruption-error-needs-a-nonempty-identity",
+      "tasks": ["task-invalid-empty-interruption-error"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-empty-interruption-error", "contractId": "contract-invalid-empty-interruption-error", "order": 1, "contentHash": "hash-invalid-empty-interruption-error", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-empty-interruption-error" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-empty-interruption-error" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-empty-interruption-error", "contractId": "contract-invalid-empty-interruption-error" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-empty-interruption-error" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-empty-interruption-error", "attemptId": "attempt-invalid-empty-interruption-error" },
+        { "op": "INTERRUPT_ATTEMPT", "attemptId": "attempt-invalid-empty-interruption-error", "verdictId": "verdict-invalid-empty-interruption-error", "errorId": "" }
+      ],
+      "expectedError": "Attempt interruption Error needs an identity"
+    },
+    {
+      "name": "pre-cancel-adjudication-cannot-claim-post-cancel-proof",
+      "tasks": ["task-invalid-premature-convergence-proof"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-premature-convergence-proof", "contractId": "contract-invalid-premature-convergence-proof", "order": 1, "contentHash": "hash-invalid-premature-convergence-proof", "maxAttempts": 1 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-premature-convergence-proof" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-premature-convergence-proof" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-premature-convergence-proof", "contractId": "contract-invalid-premature-convergence-proof" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-premature-convergence-proof" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-premature-convergence-proof", "attemptId": "attempt-invalid-premature-convergence-proof" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-premature-convergence-proof" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-invalid-premature-convergence-proof", "candidateId": "candidate-invalid-premature-convergence-proof" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-invalid-premature-convergence-proof", "verdictId": "verdict-invalid-premature-convergence-proof", "postCancelConvergence": "PRE_DISPATCHED_OR_CONTAINED" }
+      ],
+      "expectedError": "pre-cancellation adjudication cannot claim post-cancel convergence proof"
+    },
+    {
+      "name": "post-cancel-adjudication-requires-the-exact-convergence-witness",
+      "tasks": ["task-invalid-wrong-convergence-witness"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-wrong-convergence-witness", "contractId": "contract-invalid-wrong-convergence-witness", "order": 1, "contentHash": "hash-invalid-wrong-convergence-witness", "maxAttempts": 1 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-wrong-convergence-witness" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-wrong-convergence-witness" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-wrong-convergence-witness", "contractId": "contract-invalid-wrong-convergence-witness" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-wrong-convergence-witness" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-wrong-convergence-witness", "attemptId": "attempt-invalid-wrong-convergence-witness" },
+        { "op": "START_EXECUTION", "attemptId": "attempt-invalid-wrong-convergence-witness" },
+        { "op": "EXECUTOR_FINISHED", "attemptId": "attempt-invalid-wrong-convergence-witness", "candidateId": "candidate-invalid-wrong-convergence-witness" },
+        { "op": "REQUEST_CANCEL", "runId": "run-invalid-wrong-convergence-witness", "cancelRequestId": "cancel-invalid-wrong-convergence-witness" },
+        { "op": "RECORD_PASSED_VERDICT", "attemptId": "attempt-invalid-wrong-convergence-witness", "verdictId": "verdict-invalid-wrong-convergence-witness", "postCancelConvergence": "SOME_CHECK_RAN" }
+      ],
+      "expectedError": "pre-dispatched or effect-contained"
+    },
+    {
+      "name": "policy-terminalization-requires-the-exact-quiescence-witness",
+      "tasks": ["task-invalid-wrong-policy-quiescence"],
+      "steps": [
+        { "op": "CREATE_CONTRACT_VERSION", "taskId": "task-invalid-wrong-policy-quiescence", "contractId": "contract-invalid-wrong-policy-quiescence", "order": 1, "contentHash": "hash-invalid-wrong-policy-quiescence", "maxAttempts": 2 },
+        { "op": "REQUEST_APPROVAL", "contractId": "contract-invalid-wrong-policy-quiescence" },
+        { "op": "APPROVE_AND_FREEZE", "contractId": "contract-invalid-wrong-policy-quiescence" },
+        { "op": "CREATE_RUN", "runId": "run-invalid-wrong-policy-quiescence", "contractId": "contract-invalid-wrong-policy-quiescence" },
+        { "op": "START_PREFLIGHT", "runId": "run-invalid-wrong-policy-quiescence" },
+        { "op": "START_INITIAL_ATTEMPT", "runId": "run-invalid-wrong-policy-quiescence", "attemptId": "attempt-invalid-wrong-policy-quiescence" },
+        { "op": "IN_ATTEMPT_POLICY_BLOCKED", "attemptId": "attempt-invalid-wrong-policy-quiescence", "verdictId": "verdict-invalid-wrong-policy-quiescence", "effectQuiescence": "SOME_WORK_MAY_STILL_BE_RUNNING", "effectQuiescenceProofId": "policy-quiescence-wrong-witness" }
+      ],
+      "expectedError": "requires all effect-capable work to be stopped or never started"
+    }
+  ]
+}

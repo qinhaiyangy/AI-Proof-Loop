@@ -1,0 +1,5 @@
+// Deliberately broken fixture for deterministic workflow demonstrations.
+// This is not the product implementation and not a live model repair.
+export function filterItems(items, query) {
+  return items.filter((item) => item.includes(query));
+}

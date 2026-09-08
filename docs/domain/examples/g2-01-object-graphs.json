@@ -1,0 +1,276 @@
+{
+  "valid": [
+    {
+      "name": "preflight-with-zero-attempts",
+      "graph": {
+        "tasks": [
+          { "taskId": "task-preflight", "originalIntent": "Add Todo priority" }
+        ],
+        "contracts": [
+          {
+            "contractVersionId": "task-preflight:v1",
+            "taskId": "task-preflight",
+            "status": "FROZEN",
+            "contractHash": "contract-preflight-hash",
+            "maxAttempts": 2,
+            "approval": {
+              "approvalId": "approval-preflight",
+              "contractVersionId": "task-preflight:v1",
+              "approvedContractHash": "contract-preflight-hash"
+            },
+            "skillSnapshots": [],
+            "criteria": [
+              { "criterionId": "criterion-priority", "mandatory": true }
+            ]
+          }
+        ],
+        "runs": [
+          {
+            "runId": "run-preflight",
+            "taskId": "task-preflight",
+            "contractVersionId": "task-preflight:v1",
+            "boundContractHash": "contract-preflight-hash",
+            "contractStatusAtBinding": "FROZEN",
+            "status": "PREFLIGHT",
+            "attemptIds": [],
+            "runOutcome": null
+          }
+        ],
+        "attempts": [],
+        "evidence": [],
+        "interfaceReceipts": [
+          { "receiptId": "receipt-task-preflight", "commandType": "CREATE_TASK", "accepted": true, "targetRef": { "kind": "TASK", "id": "task-preflight" } },
+          { "receiptId": "receipt-run-preflight", "commandType": "CREATE_RUN", "accepted": true, "targetRef": { "kind": "RUN", "id": "run-preflight" } }
+        ]
+      }
+    },
+    {
+      "name": "failed-attempt-then-passing-repair",
+      "graph": {
+        "tasks": [
+          { "taskId": "task-todo", "originalIntent": "Add Todo priority, filtering, and tests" }
+        ],
+        "contracts": [
+          {
+            "contractVersionId": "task-todo:v1",
+            "taskId": "task-todo",
+            "status": "FROZEN",
+            "contractHash": "contract-todo-v1-hash",
+            "maxAttempts": 2,
+            "approval": {
+              "approvalId": "approval-todo-v1",
+              "contractVersionId": "task-todo:v1",
+              "approvedContractHash": "contract-todo-v1-hash"
+            },
+            "skillSnapshots": [
+              { "snapshotId": "skill-testing", "contentHash": "skill-testing-hash" }
+            ],
+            "criteria": [
+              { "criterionId": "criterion-persist", "mandatory": true },
+              { "criterionId": "criterion-filter", "mandatory": true },
+              { "criterionId": "criterion-tests", "mandatory": true }
+            ]
+          }
+        ],
+        "runs": [
+          {
+            "runId": "run-todo",
+            "taskId": "task-todo",
+            "contractVersionId": "task-todo:v1",
+            "boundContractHash": "contract-todo-v1-hash",
+            "contractStatusAtBinding": "FROZEN",
+            "status": "FINISHED",
+            "attemptIds": ["attempt-1", "attempt-2"],
+            "runOutcome": {
+              "runOutcomeId": "outcome-run-todo",
+              "value": "PASSED",
+              "finalAttemptVerdictId": "verdict-2"
+            }
+          }
+        ],
+        "attempts": [
+          {
+            "attemptId": "attempt-1",
+            "runId": "run-todo",
+            "kind": "INITIAL",
+            "status": "FINISHED",
+            "candidateHash": "candidate-1-hash",
+            "parentAttemptId": null,
+            "triggeringVerdictId": null,
+            "triggeringErrorId": null,
+            "attemptVerdict": {
+              "attemptVerdictId": "verdict-1",
+              "value": "FAILED",
+              "criterionOutcomes": [
+                { "criterionId": "criterion-persist", "value": "SATISFIED", "evidenceIds": ["evidence-a1-persist"] },
+                { "criterionId": "criterion-filter", "value": "SATISFIED", "evidenceIds": ["evidence-a1-filter"] },
+                { "criterionId": "criterion-tests", "value": "FAILED", "evidenceIds": ["evidence-a1-tests"] }
+              ]
+            }
+          },
+          {
+            "attemptId": "attempt-2",
+            "runId": "run-todo",
+            "kind": "REPAIR",
+            "status": "FINISHED",
+            "candidateHash": "candidate-2-hash",
+            "parentAttemptId": "attempt-1",
+            "triggeringVerdictId": "verdict-1",
+            "triggeringErrorId": null,
+            "attemptVerdict": {
+              "attemptVerdictId": "verdict-2",
+              "value": "PASSED",
+              "criterionOutcomes": [
+                { "criterionId": "criterion-persist", "value": "SATISFIED", "evidenceIds": ["evidence-a2-persist"] },
+                { "criterionId": "criterion-filter", "value": "SATISFIED", "evidenceIds": ["evidence-a2-filter"] },
+                { "criterionId": "criterion-tests", "value": "SATISFIED", "evidenceIds": ["evidence-a2-tests"] }
+              ]
+            }
+          }
+        ],
+        "evidence": [
+          { "evidenceId": "evidence-a1-persist", "kind": "CRITERION", "taskId": "task-todo", "contractVersionId": "task-todo:v1", "runId": "run-todo", "attemptId": "attempt-1", "candidateHash": "candidate-1-hash", "criterionIds": ["criterion-persist"] },
+          { "evidenceId": "evidence-a1-filter", "kind": "CRITERION", "taskId": "task-todo", "contractVersionId": "task-todo:v1", "runId": "run-todo", "attemptId": "attempt-1", "candidateHash": "candidate-1-hash", "criterionIds": ["criterion-filter"] },
+          { "evidenceId": "evidence-a1-tests", "kind": "CRITERION", "taskId": "task-todo", "contractVersionId": "task-todo:v1", "runId": "run-todo", "attemptId": "attempt-1", "candidateHash": "candidate-1-hash", "criterionIds": ["criterion-tests"] },
+          { "evidenceId": "evidence-a2-persist", "kind": "CRITERION", "taskId": "task-todo", "contractVersionId": "task-todo:v1", "runId": "run-todo", "attemptId": "attempt-2", "candidateHash": "candidate-2-hash", "criterionIds": ["criterion-persist"] },
+          { "evidenceId": "evidence-a2-filter", "kind": "CRITERION", "taskId": "task-todo", "contractVersionId": "task-todo:v1", "runId": "run-todo", "attemptId": "attempt-2", "candidateHash": "candidate-2-hash", "criterionIds": ["criterion-filter"] },
+          { "evidenceId": "evidence-a2-tests", "kind": "CRITERION", "taskId": "task-todo", "contractVersionId": "task-todo:v1", "runId": "run-todo", "attemptId": "attempt-2", "candidateHash": "candidate-2-hash", "criterionIds": ["criterion-tests"] },
+          { "evidenceId": "governance-baseline", "kind": "GOVERNANCE", "scope": "RUN", "taskId": "task-todo", "contractVersionId": "task-todo:v1", "runId": "run-todo" }
+        ],
+        "interfaceReceipts": [
+          { "receiptId": "receipt-task-todo", "commandType": "CREATE_TASK", "accepted": true, "targetRef": { "kind": "TASK", "id": "task-todo" } },
+          { "receiptId": "receipt-run-todo", "commandType": "CREATE_RUN", "accepted": true, "targetRef": { "kind": "RUN", "id": "run-todo" } }
+        ]
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "name": "run-bound-to-draft-contract",
+      "expectedError": "must reference a FROZEN Contract Version",
+      "graph": {
+        "tasks": [
+          { "taskId": "task-draft", "originalIntent": "Draft task" }
+        ],
+        "contracts": [
+          {
+            "contractVersionId": "task-draft:v1",
+            "taskId": "task-draft",
+            "status": "DRAFT",
+            "contractHash": "draft-hash",
+            "maxAttempts": 2,
+            "approval": null,
+            "skillSnapshots": [],
+            "criteria": [
+              { "criterionId": "criterion-draft", "mandatory": true }
+            ]
+          }
+        ],
+        "runs": [
+          {
+            "runId": "run-draft",
+            "taskId": "task-draft",
+            "contractVersionId": "task-draft:v1",
+            "boundContractHash": "draft-hash",
+            "contractStatusAtBinding": "FROZEN",
+            "status": "PREFLIGHT",
+            "attemptIds": [],
+            "runOutcome": null
+          }
+        ],
+        "attempts": [],
+        "evidence": [],
+        "interfaceReceipts": [
+          { "receiptId": "receipt-task-draft", "commandType": "CREATE_TASK", "accepted": true, "targetRef": { "kind": "TASK", "id": "task-draft" } },
+          { "receiptId": "receipt-run-draft", "commandType": "CREATE_RUN", "accepted": true, "targetRef": { "kind": "RUN", "id": "run-draft" } }
+        ]
+      }
+    },
+    {
+      "name": "repair-reuses-prior-attempt-evidence",
+      "expectedError": "uses Evidence from another Attempt",
+      "graph": {
+        "tasks": [
+          { "taskId": "task-cross", "originalIntent": "Cross-attempt evidence test" }
+        ],
+        "contracts": [
+          {
+            "contractVersionId": "task-cross:v1",
+            "taskId": "task-cross",
+            "status": "FROZEN",
+            "contractHash": "cross-contract-hash",
+            "maxAttempts": 2,
+            "approval": {
+              "approvalId": "approval-cross",
+              "contractVersionId": "task-cross:v1",
+              "approvedContractHash": "cross-contract-hash"
+            },
+            "skillSnapshots": [],
+            "criteria": [
+              { "criterionId": "criterion-cross", "mandatory": true }
+            ]
+          }
+        ],
+        "runs": [
+          {
+            "runId": "run-cross",
+            "taskId": "task-cross",
+            "contractVersionId": "task-cross:v1",
+            "boundContractHash": "cross-contract-hash",
+            "contractStatusAtBinding": "FROZEN",
+            "status": "FINISHED",
+            "attemptIds": ["attempt-cross-1", "attempt-cross-2"],
+            "runOutcome": {
+              "runOutcomeId": "outcome-cross",
+              "value": "PASSED",
+              "finalAttemptVerdictId": "verdict-cross-2"
+            }
+          }
+        ],
+        "attempts": [
+          {
+            "attemptId": "attempt-cross-1",
+            "runId": "run-cross",
+            "kind": "INITIAL",
+            "status": "FINISHED",
+            "candidateHash": "candidate-cross-1",
+            "parentAttemptId": null,
+            "triggeringVerdictId": null,
+            "triggeringErrorId": null,
+            "attemptVerdict": {
+              "attemptVerdictId": "verdict-cross-1",
+              "value": "FAILED",
+              "criterionOutcomes": [
+                { "criterionId": "criterion-cross", "value": "FAILED", "evidenceIds": ["evidence-cross-1"] }
+              ]
+            }
+          },
+          {
+            "attemptId": "attempt-cross-2",
+            "runId": "run-cross",
+            "kind": "REPAIR",
+            "status": "FINISHED",
+            "candidateHash": "candidate-cross-2",
+            "parentAttemptId": "attempt-cross-1",
+            "triggeringVerdictId": "verdict-cross-1",
+            "triggeringErrorId": null,
+            "attemptVerdict": {
+              "attemptVerdictId": "verdict-cross-2",
+              "value": "PASSED",
+              "criterionOutcomes": [
+                { "criterionId": "criterion-cross", "value": "SATISFIED", "evidenceIds": ["evidence-cross-1"] }
+              ]
+            }
+          }
+        ],
+        "evidence": [
+          { "evidenceId": "evidence-cross-1", "kind": "CRITERION", "taskId": "task-cross", "contractVersionId": "task-cross:v1", "runId": "run-cross", "attemptId": "attempt-cross-1", "candidateHash": "candidate-cross-1", "criterionIds": ["criterion-cross"] }
+        ],
+        "interfaceReceipts": [
+          { "receiptId": "receipt-task-cross", "commandType": "CREATE_TASK", "accepted": true, "targetRef": { "kind": "TASK", "id": "task-cross" } },
+          { "receiptId": "receipt-run-cross", "commandType": "CREATE_RUN", "accepted": true, "targetRef": { "kind": "RUN", "id": "run-cross" } }
+        ]
+      }
+    }
+  ]
+}
